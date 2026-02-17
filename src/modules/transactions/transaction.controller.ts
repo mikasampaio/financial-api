@@ -1,0 +1,56 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from "@nestjs/common";
+import { TransactionService } from "./transaction.service";
+import { GetParamsCategoryDto } from "../categories/dtos";
+import { CreateTransactionDto, UpdateTransactionDto } from "./dtos";
+
+@Controller("transactions")
+export class TransactionController {
+  constructor(private readonly transactionService: TransactionService) {}
+
+  @Get()
+  get(@Query() { page = 1, limit = 10, ...filters }: GetParamsCategoryDto) {
+    return this.transactionService.get({ page, limit, ...filters });
+  }
+
+  @Get(":id")
+  getById(@Param("id") id: string) {
+    return this.transactionService.getById(id);
+  }
+
+  @Get(":year/:month")
+  getByMonth(@Param("year") year: number, @Param("month") month: number) {
+    return this.transactionService.getByMonth(year, month);
+  }
+
+  @Get("/balance/:year/:month")
+  getBalance(@Param("year") year: number, @Param("month") month: number) {
+    return this.transactionService.getBalance(year, month);
+  }
+
+  @Post()
+  create(@Body() createTransactionDto: CreateTransactionDto) {
+    return this.transactionService.create(createTransactionDto);
+  }
+
+  @Put(":id")
+  update(
+    @Param("id") id: string,
+    @Body() updateTransactionDto: UpdateTransactionDto,
+  ) {
+    return this.transactionService.update(id, updateTransactionDto);
+  }
+
+  @Delete(":id")
+  delete(@Param("id") id: string) {
+    return this.transactionService.delete(id);
+  }
+}

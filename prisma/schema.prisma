@@ -28,12 +28,25 @@ enum TransactionType {
 }
 
 model Category {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  order        Int?
+  name         String
+  type         TransactionType
+  description  String?
+  color        String?
+  icon         String?
+  status       Status?
+  transactions Transaction[]
+}
+
+model Transaction {
   id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  order       Int?
-  name        String
-  type        TransactionType
+  amount      Float
+  date        DateTime
+  recurring   Boolean         @default(false)
   description String?
-  color       String?
-  icon        String?
+  type        TransactionType
+  categoryId  String?         @db.ObjectId
+  category    Category?       @relation(fields: [categoryId], references: [id])
   status      Status?
 }
