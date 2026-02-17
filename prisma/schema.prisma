@@ -12,7 +12,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url      = "mongodb+srv://vosox99207_db_user:U0nwoJJ7qTAzWz1g@financeiro.fhbx7zw.mongodb.net/financeiro?retryWrites=true&w=majority&appName=Financeiro&authSource=admin"
 }
 
 type Status {
@@ -22,11 +22,18 @@ type Status {
   deactivatedAt DateTime?
 }
 
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 model Category {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  order       Int?
   name        String
+  type        TransactionType
   description String?
   color       String?
   icon        String?
-  status      Status
+  status      Status?
 }
