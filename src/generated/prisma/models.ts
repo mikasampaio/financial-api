@@ -10,4 +10,5 @@
  */
 export type * from './models/Status.js'
 export type * from './models/Category.js'
+export type * from './models/Transaction.js'
 export type * from './commonInputTypes.js'

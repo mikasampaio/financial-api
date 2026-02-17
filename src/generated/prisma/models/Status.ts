@@ -23,10 +23,11 @@ export type StatusModel = runtime.Types.Result.DefaultSelection<Prisma.$StatusPa
 
 
 
-export type StatusCompositeFilter = {
-  equals?: Prisma.StatusObjectEqualityInput
-  is?: Prisma.StatusWhereInput
-  isNot?: Prisma.StatusWhereInput
+export type StatusNullableCompositeFilter = {
+  equals?: Prisma.StatusObjectEqualityInput | null
+  is?: Prisma.StatusWhereInput | null
+  isNot?: Prisma.StatusWhereInput | null
+  isSet?: boolean
 }
 
 export type StatusOrderByInput = {
@@ -36,13 +37,14 @@ export type StatusOrderByInput = {
   deactivatedAt?: Prisma.SortOrder
 }
 
-export type StatusCreateEnvelopeInput = {
-  set?: Prisma.StatusCreateInput
+export type StatusNullableCreateEnvelopeInput = {
+  set?: Prisma.StatusCreateInput | null
 }
 
-export type StatusUpdateEnvelopeInput = {
-  set?: Prisma.StatusCreateInput
-  update?: Prisma.StatusUpdateInput
+export type StatusNullableUpdateEnvelopeInput = {
+  set?: Prisma.StatusCreateInput | null
+  upsert?: Prisma.StatusUpsertInput
+  unset?: boolean
 }
 
 export type StatusWhereInput = {
@@ -55,15 +57,16 @@ export type StatusWhereInput = {
   deactivatedAt?: Prisma.DateTimeNullableFilter<"Status"> | Date | string | null
 }
 
+export type StatusUpsertInput = {
+  set: Prisma.StatusCreateInput | null
+  update: Prisma.StatusUpdateInput
+}
+
 export type StatusUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {

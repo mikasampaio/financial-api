@@ -49,7 +49,8 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 
 export const ModelName = {
-  Category: 'Category'
+  Category: 'Category',
+  Transaction: 'Transaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -60,13 +61,28 @@ export type ModelName = (typeof ModelName)[keyof typeof ModelName]
 
 export const CategoryScalarFieldEnum = {
   id: 'id',
+  order: 'order',
   name: 'name',
+  type: 'type',
   description: 'description',
   color: 'color',
   icon: 'icon'
 } as const
 
 export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  date: 'date',
+  recurring: 'recurring',
+  description: 'description',
+  type: 'type',
+  categoryId: 'categoryId'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
 export const SortOrder = {
