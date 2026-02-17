@@ -14,6 +14,7 @@ import {
   UpdateCategoryDto,
 } from "./dtos";
 import { CategoryService } from "./category.service";
+import { ParamsId } from "src/common/decorators/params.decorator";
 
 @Controller("categories")
 export class CategoryController {
@@ -25,7 +26,7 @@ export class CategoryController {
   }
 
   @Get(":id")
-  getById(@Param("id") id: string) {
+  getById(@ParamsId() id: string) {
     return this.categoryService.getById(id);
   }
 
@@ -35,12 +36,12 @@ export class CategoryController {
   }
 
   @Put(":id")
-  async update(@Param("id") id: string, @Body() data: UpdateCategoryDto) {
+  async update(@ParamsId() id: string, @Body() data: UpdateCategoryDto) {
     return await this.categoryService.update(id, data);
   }
 
   @Delete(":id")
-  async delete(@Param("id") id: string) {
+  async delete(@ParamsId() id: string) {
     return this.categoryService.delete(id);
   }
 }

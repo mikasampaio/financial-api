@@ -11,6 +11,7 @@ import {
 import { TransactionService } from "./transaction.service";
 import { GetParamsCategoryDto } from "../categories/dtos";
 import { CreateTransactionDto, UpdateTransactionDto } from "./dtos";
+import { ParamsId } from "src/common/decorators/params.decorator";
 
 @Controller("transactions")
 export class TransactionController {
@@ -22,7 +23,7 @@ export class TransactionController {
   }
 
   @Get(":id")
-  getById(@Param("id") id: string) {
+  getById(@ParamsId() id: string) {
     return this.transactionService.getById(id);
   }
 
@@ -43,14 +44,14 @@ export class TransactionController {
 
   @Put(":id")
   update(
-    @Param("id") id: string,
+    @ParamsId() id: string,
     @Body() updateTransactionDto: UpdateTransactionDto,
   ) {
     return this.transactionService.update(id, updateTransactionDto);
   }
 
   @Delete(":id")
-  delete(@Param("id") id: string) {
+  delete(@ParamsId() id: string) {
     return this.transactionService.delete(id);
   }
 }
