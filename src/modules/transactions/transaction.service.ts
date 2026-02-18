@@ -20,8 +20,10 @@ export class TransactionService {
     type,
     startDate,
     endDate,
+    userId,
   }: GetParamsTransactionDto) {
     const whereParams = {
+      userId,
       ...(description && { description: { contains: description } }),
       ...(categoryId && { categoryId }),
       ...(type && { type }),
@@ -47,13 +49,21 @@ export class TransactionService {
     });
   }
 
-  async getById(id: string) {
+  async getById({ id, userId }: { id: string; userId: string }) {
     return await this.prisma.transaction.findUnique({
-      where: { id },
+      where: { id, userId },
     });
   }
 
-  async getByMonth(year: number, month: number) {
+  async getByMonth({
+    year,
+    month,
+    userId,
+  }: {
+    year: number;
+    month: number;
+    userId: string;
+  }) {
     const startDate = dayjs(new Date(year, month - 1, 1))
       .startOf("day")
       .toDate();
@@ -66,6 +76,7 @@ export class TransactionService {
           gte: startDate,
           lte: endDate,
         },
+        userId,
       },
       orderBy: {
         date: "desc",
@@ -81,7 +92,7 @@ export class TransactionService {
       },
     });
 
-    const balance = await this.getBalance(year, month);
+    const balance = await this.getBalance({ year, month, userId });
 
     return {
       transactions,
@@ -92,7 +103,15 @@ export class TransactionService {
     };
   }
 
-  async getBalance(year: number, month: number) {
+  async getBalance({
+    year,
+    month,
+    userId,
+  }: {
+    year: number;
+    month: number;
+    userId: string;
+  }) {
     const startDate = dayjs(new Date(year, month - 1, 1))
       .startOf("day")
       .toDate();
@@ -105,6 +124,7 @@ export class TransactionService {
           gte: startDate,
           lte: endDate,
         },
+        userId,
       },
     });
 
@@ -123,7 +143,15 @@ export class TransactionService {
     };
   }
 
-  async create(data: CreateTransactionDto) {
+  async create(data: CreateTransactionDto & { userId: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+    });
+
+    if (!user) {
+      throw new HttpException("Usuário não encontrado", HttpStatus.NOT_FOUND);
+    }
+
     const category = await this.prisma.category.findUnique({
       where: { id: data.categoryId },
     });
@@ -151,7 +179,7 @@ export class TransactionService {
     });
   }
 
-  async update(id: string, data: UpdateTransactionDto) {
+  async update(id: string, data: UpdateTransactionDto & { userId: string }) {
     if (data.categoryId) {
       const category = await this.prisma.category.findUnique({
         where: { id: data.categoryId },
@@ -186,7 +214,7 @@ export class TransactionService {
     });
   }
 
-  async delete(id: string) {
+  async delete(id: string, userId: string) {
     await this.prisma.transaction.delete({
       where: { id },
     });

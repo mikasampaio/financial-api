@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 
 interface JwtPayload {
-  sub: number;
+  sub: string; // ObjectId do MongoDB é string
   email: string;
 }
 

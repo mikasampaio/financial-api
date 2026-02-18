@@ -22,6 +22,10 @@ export class GetParamsTransactionDto extends PaginationDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsDateString()
+  userId?: string;
+
+  @IsOptional()
   @IsEnum(["INCOME", "EXPENSE"])
   type?: "INCOME" | "EXPENSE";
 
