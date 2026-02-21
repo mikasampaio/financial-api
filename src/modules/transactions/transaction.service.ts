@@ -44,6 +44,15 @@ export class TransactionService {
       orderBy: {
         date: "desc",
       },
+      include: {
+        category: {
+          select: {
+            name: true,
+            color: true,
+            icon: true,
+          },
+        },
+      },
       take: limit,
       skip: (page - 1) * limit,
     });
@@ -52,6 +61,15 @@ export class TransactionService {
   async getById({ id, userId }: { id: string; userId: string }) {
     return await this.prisma.transaction.findUnique({
       where: { id, userId },
+      include: {
+        category: {
+          select: {
+            name: true,
+            color: true,
+            icon: true,
+          },
+        },
+      },
     });
   }
 
