@@ -3,10 +3,12 @@ import { PrismaService } from "../prisma/prisma.service";
 import {
   CreateTransactionDto,
   GetParamsTransactionDto,
+  GetTransactionByMonthDto,
   UpdateTransactionDto,
 } from "./dtos";
 import dayjs from "dayjs";
 import { Transaction } from "src/generated/prisma/client";
+import { months } from "src/common/utils/months.util";
 
 @Injectable()
 export class TransactionService {
@@ -59,7 +61,7 @@ export class TransactionService {
   }
 
   async getById({ id, userId }: { id: string; userId: string }) {
-    return await this.prisma.transaction.findUnique({
+    return await this.prisma.transaction.findFirst({
       where: { id, userId },
       include: {
         category: {
@@ -73,15 +75,14 @@ export class TransactionService {
     });
   }
 
-  async getByMonth({
+  async getByPeriod({
     year,
     month,
     userId,
-  }: {
-    year: number;
-    month: number;
-    userId: string;
-  }) {
+    search,
+    categoryIds,
+    type,
+  }: GetTransactionByMonthDto & { userId: string }) {
     const startDate = dayjs(new Date(year, month - 1, 1))
       .startOf("day")
       .toDate();
@@ -95,6 +96,18 @@ export class TransactionService {
           lte: endDate,
         },
         userId,
+        ...(search && {
+          OR: [
+            { description: { contains: search } },
+            {
+              category: {
+                name: { contains: search },
+              },
+            },
+          ],
+        }),
+        ...(categoryIds && { categoryId: { in: categoryIds.split(",") } }),
+        ...(type && { type }),
       },
       orderBy: {
         date: "desc",
@@ -110,14 +123,24 @@ export class TransactionService {
       },
     });
 
-    const balance = await this.getBalance({ year, month, userId });
+    const income = transactions
+      .filter((t) => t.type === "INCOME")
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const expense = transactions
+      .filter((t) => t.type === "EXPENSE")
+      .reduce((acc, t) => acc + t.amount, 0);
 
     return {
       transactions,
       total: transactions.length,
       month,
       year,
-      balance,
+      balance: {
+        income,
+        expense,
+        total: income - expense,
+      },
     };
   }
 
@@ -159,6 +182,51 @@ export class TransactionService {
       expense,
       balance: income - expense,
     };
+  }
+
+  async getAvailableMonthsOptions(userId: string) {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { userId },
+      select: {
+        date: true,
+      },
+    });
+
+    const options = transactions.reduce<
+      Array<{ months: { name: string; value: number }[]; year: number }>
+    >((acc, transaction) => {
+      const date = dayjs(transaction.date);
+      const year = date.year();
+      const month = date.month() + 1;
+
+      const monthName = months.find((m) => m.value === month)?.label;
+
+      if (!monthName) return acc;
+
+      const monthData = { name: monthName, value: month };
+
+      const existingYear = acc.find((o) => o.year === year);
+
+      if (existingYear) {
+        const monthExists = existingYear.months?.find(
+          (m) => m.value === monthData.value,
+        );
+
+        if (!monthExists) {
+          existingYear.months.push(monthData);
+        }
+      } else {
+        acc.push({ year, months: [monthData] });
+      }
+      return acc;
+    }, []);
+
+    return options
+      ?.sort((a, b) => b.year - a.year)
+      ?.map((o) => ({
+        year: o.year,
+        months: o.months.sort((a, b) => a.value - b.value),
+      }));
   }
 
   async create(data: CreateTransactionDto & { userId: string }) {

@@ -64,6 +64,47 @@ export class GetParamsTransactionDto extends PaginationDto {
   endDate?: string;
 }
 
+export class GetTransactionByMonthDto {
+  @ApiPropertyOptional({
+    description: "Ano para filtrar as transações",
+    example: 2024,
+  })
+  @IsDateString()
+  year: number;
+
+  @ApiPropertyOptional({
+    description: "Mês para filtrar as transações",
+    example: 2,
+  })
+  @IsDateString()
+  month: number;
+
+  @ApiPropertyOptional({
+    description: "Campo de busca para descrição ou categoria da transação",
+    example: "supermercado",
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional({
+    description: "ID's das categorias",
+    example: "507f1f77bcf86cd799439011,507f1f77bcf86cd799439012",
+  })
+  @IsOptional()
+  @IsString()
+  categoryIds?: string;
+
+  @ApiPropertyOptional({
+    description: "Tipo da transação",
+    enum: ["INCOME", "EXPENSE"],
+    example: "EXPENSE",
+  })
+  @IsOptional()
+  @IsEnum(["INCOME", "EXPENSE"])
+  type?: "INCOME" | "EXPENSE";
+}
+
 export class CreateTransactionDto {
   @ApiProperty({
     description: "Tipo da transação",

@@ -9,13 +9,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { TransactionService } from "./transaction.service";
 import { GetParamsCategoryDto } from "../categories/dtos";
 import { CreateTransactionDto, UpdateTransactionDto } from "./dtos";
@@ -24,6 +18,17 @@ import {
   ParamsId,
 } from "src/common/decorators/params.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt.guard";
+import dayjs from "dayjs";
+import {
+  ApiListTransactions,
+  ApiGetBalance,
+  ApiGetTransactionById,
+  ApiCreateTransaction,
+  ApiUpdateTransaction,
+  ApiDeleteTransaction,
+  ApiGetByPeriod,
+  ApiGetAvailableMonthsOptions,
+} from "./decorators/swagger.decorator";
 
 @ApiTags("transactions")
 @ApiBearerAuth()
@@ -33,71 +38,78 @@ export class TransactionController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: "Listar transações com filtros e paginação" })
-  @ApiResponse({
-    status: 200,
-    description: "Lista de transações retornada com sucesso",
-  })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
+  @ApiListTransactions()
   get(
     @CurrentUserId() userId: string,
     @Query() { page = 1, limit = 10, ...filters }: GetParamsCategoryDto,
   ) {
-    return this.transactionService.get({ page, limit, userId, ...filters });
+    return this.transactionService.get({
+      page: Number(page),
+      limit: Number(limit),
+      userId,
+      ...filters,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("balance")
+  @ApiGetBalance()
+  getBalance(
+    @CurrentUserId() userId: string,
+    @Query("year") year: number,
+    @Query("month") month: number,
+  ) {
+    const yearFormat = year ? year : dayjs().year();
+    const monthFormat = month ? month : dayjs().month() + 1;
+
+    return this.transactionService.getBalance({
+      year: yearFormat,
+      month: monthFormat,
+      userId,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("period")
+  @ApiGetByPeriod()
+  getByPeriod(
+    @CurrentUserId() userId: string,
+    @Query("year") year: number,
+    @Query("month") month: number,
+    @Query("categoryIds") categoryIds?: string,
+    @Query("type") type?: "INCOME" | "EXPENSE",
+    @Query("search") search?: string,
+  ) {
+    const yearFormat = year ? year : dayjs().year();
+    const monthFormat = month ? month : dayjs().month() + 1;
+
+    return this.transactionService.getByPeriod({
+      year: yearFormat,
+      month: monthFormat,
+      userId,
+      categoryIds,
+      type,
+      search,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("available-months")
+  @ApiGetAvailableMonthsOptions()
+  getAvailableMonthsOptions(@CurrentUserId() userId: string) {
+    return this.transactionService.getAvailableMonthsOptions(userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(":id")
-  @ApiOperation({ summary: "Buscar transação por ID" })
-  @ApiResponse({ status: 200, description: "Transação encontrada" })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
-  @ApiResponse({ status: 404, description: "Transação não encontrada" })
+  @ApiGetTransactionById()
   getById(@CurrentUserId() userId: string, @ParamsId() id: string) {
     return this.transactionService.getById({ id, userId });
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(":year/:month")
-  @ApiOperation({ summary: "Buscar transações por mês e ano" })
-  @ApiParam({ name: "year", description: "Ano", example: 2024 })
-  @ApiParam({ name: "month", description: "Mês", example: 2 })
-  @ApiResponse({
-    status: 200,
-    description: "Transações do mês retornadas com sucesso",
-  })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
-  getByMonth(
-    @CurrentUserId() userId: string,
-    @Param("year") year: number,
-    @Param("month") month: number,
-  ) {
-    return this.transactionService.getByMonth({ year, month, userId });
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get("/balance/:year/:month")
-  @ApiOperation({ summary: "Buscar balanço do mês" })
-  @ApiParam({ name: "year", description: "Ano", example: 2024 })
-  @ApiParam({ name: "month", description: "Mês", example: 2 })
-  @ApiResponse({
-    status: 200,
-    description: "Balanço do mês retornado com sucesso",
-  })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
-  getBalance(
-    @CurrentUserId() userId: string,
-    @Param("year") year: number,
-    @Param("month") month: number,
-  ) {
-    return this.transactionService.getBalance({ year, month, userId });
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiOperation({ summary: "Criar nova transação" })
-  @ApiResponse({ status: 201, description: "Transação criada com sucesso" })
-  @ApiResponse({ status: 400, description: "Dados inválidos" })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
+  @ApiCreateTransaction()
   create(
     @CurrentUserId() userId: string,
     @Body() createTransactionDto: CreateTransactionDto,
@@ -107,10 +119,7 @@ export class TransactionController {
 
   @UseGuards(JwtAuthGuard)
   @Put(":id")
-  @ApiOperation({ summary: "Atualizar transação" })
-  @ApiResponse({ status: 200, description: "Transação atualizada com sucesso" })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
-  @ApiResponse({ status: 404, description: "Transação não encontrada" })
+  @ApiUpdateTransaction()
   update(
     @CurrentUserId() userId: string,
     @ParamsId() id: string,
@@ -124,10 +133,7 @@ export class TransactionController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(":id")
-  @ApiOperation({ summary: "Deletar transação" })
-  @ApiResponse({ status: 200, description: "Transação deletada com sucesso" })
-  @ApiResponse({ status: 401, description: "Não autorizado" })
-  @ApiResponse({ status: 404, description: "Transação não encontrada" })
+  @ApiDeleteTransaction()
   delete(@CurrentUserId() userId: string, @ParamsId() id: string) {
     return this.transactionService.delete(id, userId);
   }
