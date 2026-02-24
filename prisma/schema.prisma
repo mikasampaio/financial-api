@@ -10,6 +10,10 @@ generator client {
   moduleFormat = "cjs"
 }
 
+generator clientDefault {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
