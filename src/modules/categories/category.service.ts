@@ -24,8 +24,11 @@ export class CategoryService {
         id,
         type,
       },
-      take: limit,
-      skip: (page - 1) * limit,
+      ...(limit &&
+        page && {
+          take: limit,
+          skip: (page - 1) * limit,
+        }),
     });
   }
 
