@@ -12,7 +12,6 @@ interface RequestWithUser extends Request {
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
   use(req: RequestWithUser, res: Response, next: NextFunction) {
-    console.log(req.user)
     if (req.user) {
       console.log("User ID:", req.user.id);
       console.log("User Email:", req.user.email);

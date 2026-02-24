@@ -21,7 +21,7 @@ export class CreateUserDTO {
   @ApiProperty({
     description: "Senha do usuário",
     example: "senha123",
-    minLength: 6,
+    minLength: 4,
   })
   @IsString()
   @IsNotEmpty()
