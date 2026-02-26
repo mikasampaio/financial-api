@@ -9,11 +9,21 @@ import {
 import dayjs from "dayjs";
 import { Transaction } from "src/generated/prisma/client";
 import { months } from "src/common/utils/months.util";
+import {
+  buildTransactionWhereClause,
+  calculateBalance,
+  calculatePeriodDates,
+  categoryInclude,
+} from "./helpers/transaction.helpers";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 @Injectable()
 export class TransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /* Lista todas as transações */
   async get({
     page,
     limit,
@@ -24,57 +34,88 @@ export class TransactionService {
     endDate,
     userId,
   }: GetParamsTransactionDto) {
-    const whereParams = {
+    const whereParams = buildTransactionWhereClause({
       userId,
-      ...(description && { description: { contains: description } }),
-      ...(categoryId && { categoryId }),
-      ...(type && { type }),
-      ...(startDate && {
-        date: {
-          gte: new Date(startDate),
-        },
-      }),
-      ...(endDate && {
-        date: {
-          lte: new Date(endDate),
-        },
-      }),
-    };
+      description,
+      categoryId,
+      type,
+      startDate,
+      endDate,
+    });
 
     return await this.prisma.transaction.findMany({
       where: whereParams,
       orderBy: {
         date: "desc",
       },
-      include: {
-        category: {
-          select: {
-            name: true,
-            color: true,
-            icon: true,
-          },
-        },
-      },
+      include: categoryInclude,
       take: limit,
       skip: (page - 1) * limit,
     });
   }
 
+  /* Obtém uma transação pelo ID */
   async getById({ id, userId }: { id: string; userId: string }) {
     return await this.prisma.transaction.findFirst({
       where: { id, userId },
-      include: {
-        category: {
-          select: {
-            name: true,
-            color: true,
-            icon: true,
-          },
-        },
-      },
+      include: categoryInclude,
     });
   }
 
+  /* Obtém todas as transações agrupadas por período */
+  async getGroupedByDate({
+    year,
+    month,
+    userId,
+    search,
+    categoryIds,
+    type,
+  }: GetTransactionByMonthDto & { userId: string }) {
+    // Aplicar valores padrão se não fornecidos
+    const yearFormat = year ?? dayjs().year();
+    const monthFormat = month ?? dayjs().month() + 1;
+
+    const whereParams = buildTransactionWhereClause({
+      userId,
+      year: yearFormat,
+      month: monthFormat,
+      search,
+      categoryIds,
+      type,
+    });
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: whereParams,
+      orderBy: {
+        date: "desc",
+      },
+      include: categoryInclude,
+    });
+
+    // Agrupar por data
+    const grouped = transactions.reduce(
+      (acc, transaction) => {
+        const dateKey = dayjs(transaction.date).utc().format("YYYY-MM-DD");
+
+        if (!acc[dateKey]) {
+          acc[dateKey] = { transactions: [], total: 0 };
+        }
+
+        acc[dateKey].transactions.push(transaction);
+        acc[dateKey].total += 1;
+        return acc;
+      },
+      {} as Record<string, { transactions: Transaction[]; total: number }>,
+    );
+
+    return Object.entries(grouped).map(([date, data]) => ({
+      date,
+      transactions: data.transactions,
+      total: data.total,
+    }));
+  }
+
+  /* Obtém transações por período */
   async getByPeriod({
     year,
     month,
@@ -83,107 +124,69 @@ export class TransactionService {
     categoryIds,
     type,
   }: GetTransactionByMonthDto & { userId: string }) {
-    const startDate = dayjs(new Date(year, month - 1, 1))
-      .startOf("day")
-      .toDate();
+    // Aplicar valores padrão se não fornecidos
+    const yearFormat = year ?? dayjs().year();
+    const monthFormat = month ?? dayjs().month() + 1;
 
-    const endDate = dayjs(startDate).endOf("month").startOf("day").toDate();
+    const whereParams = buildTransactionWhereClause({
+      userId,
+      year: yearFormat,
+      month: monthFormat,
+      search,
+      categoryIds,
+      type,
+    });
 
     const transactions = await this.prisma.transaction.findMany({
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-        userId,
-        ...(search && {
-          OR: [
-            { description: { contains: search } },
-            {
-              category: {
-                name: { contains: search },
-              },
-            },
-          ],
-        }),
-        ...(categoryIds && { categoryId: { in: categoryIds.split(",") } }),
-        ...(type && { type }),
-      },
+      where: whereParams,
       orderBy: {
         date: "desc",
       },
-      include: {
-        category: {
-          select: {
-            name: true,
-            color: true,
-            icon: true,
-          },
-        },
-      },
+      include: categoryInclude,
     });
 
-    const income = transactions
-      .filter((t) => t.type === "INCOME")
-      .reduce((acc, t) => acc + t.amount, 0);
-
-    const expense = transactions
-      .filter((t) => t.type === "EXPENSE")
-      .reduce((acc, t) => acc + t.amount, 0);
+    const balance = calculateBalance(transactions);
 
     return {
       transactions,
       total: transactions.length,
-      month,
-      year,
+      month: monthFormat,
+      year: yearFormat,
       balance: {
-        income,
-        expense,
-        total: income - expense,
+        ...balance,
+        total: balance.balance,
       },
     };
   }
 
+  /* Obtém o saldo de transações por período */
   async getBalance({
     year,
     month,
     userId,
   }: {
-    year: number;
-    month: number;
+    year?: number;
+    month?: number;
     userId: string;
   }) {
-    const startDate = dayjs(new Date(year, month - 1, 1))
-      .startOf("day")
-      .toDate();
+    // Aplicar valores padrão se não fornecidos
+    const yearFormat = year ?? dayjs().year();
+    const monthFormat = month ?? dayjs().month() + 1;
 
-    const endDate = dayjs(startDate).endOf("month").startOf("day").toDate();
-
-    const transactions: Transaction[] = await this.prisma.transaction.findMany({
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-        userId,
-      },
+    const whereParams = buildTransactionWhereClause({
+      userId,
+      year: yearFormat,
+      month: monthFormat,
     });
 
-    const income = transactions
-      .filter((t) => t.type === "INCOME")
-      .reduce((acc, t) => acc + t.amount, 0);
+    const transactions = await this.prisma.transaction.findMany({
+      where: whereParams,
+    });
 
-    const expense = transactions
-      .filter((t) => t.type === "EXPENSE")
-      .reduce((acc, t) => acc + t.amount, 0);
-
-    return {
-      income,
-      expense,
-      balance: income - expense,
-    };
+    return calculateBalance(transactions);
   }
 
+  /* Obtém os meses disponíveis para um usuário */
   async getAvailableMonthsOptions(userId: string) {
     const transactions = await this.prisma.transaction.findMany({
       where: { userId },
@@ -229,6 +232,7 @@ export class TransactionService {
       }));
   }
 
+  /* Cria uma nova transação */
   async create(data: CreateTransactionDto & { userId: string }) {
     const user = await this.prisma.user.findUnique({
       where: { id: data.userId },

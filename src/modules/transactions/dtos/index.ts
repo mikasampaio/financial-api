@@ -5,10 +5,12 @@ import {
   IsEnum,
   IsHexColor,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
 } from "class-validator";
+import { Type } from "class-transformer";
 import { PaginationDto } from "src/common/query/pagination.query";
 import { PartialType } from "@nestjs/swagger";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -64,20 +66,44 @@ export class GetParamsTransactionDto extends PaginationDto {
   endDate?: string;
 }
 
+export class GetBalanceQueryDto {
+  @ApiPropertyOptional({
+    description: "Ano para filtrar as transações",
+    example: 2024,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  year?: number;
+
+  @ApiPropertyOptional({
+    description: "Mês para filtrar as transações (1-12)",
+    example: 2,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  month?: number;
+}
+
 export class GetTransactionByMonthDto {
   @ApiPropertyOptional({
     description: "Ano para filtrar as transações",
     example: 2024,
   })
-  @IsDateString()
-  year: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  year?: number;
 
   @ApiPropertyOptional({
-    description: "Mês para filtrar as transações",
+    description: "Mês para filtrar as transações (1-12)",
     example: 2,
   })
-  @IsDateString()
-  month: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  month?: number;
 
   @ApiPropertyOptional({
     description: "Campo de busca para descrição ou categoria da transação",
@@ -88,7 +114,7 @@ export class GetTransactionByMonthDto {
   search?: string;
 
   @ApiPropertyOptional({
-    description: "ID's das categorias",
+    description: "ID's das categorias separados por vírgula",
     example: "507f1f77bcf86cd799439011,507f1f77bcf86cd799439012",
   })
   @IsOptional()
@@ -128,9 +154,9 @@ export class CreateTransactionDto {
     example: "2024-02-18",
   })
   @IsNotEmpty()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: "Date must be in the format YYYY-MM-DD",
-  })
+  // @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+  //   message: "Date must be in the format YYYY-MM-DD",
+  // })
   date: string;
 
   @ApiPropertyOptional({
