@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { calculatePeriodDates } from "src/common/helpers/calculate-period-dates.helper";
 import type { Transaction } from "src/generated/prisma/client";
 
 /* Tipos para filtros */
@@ -69,17 +70,6 @@ export function buildTransactionWhereClause(filters: TransactionFilters) {
       ],
     }),
   };
-}
-
-/* Calcula as datas de início e fim de um período (mês/ano) */
-export function calculatePeriodDates(year: number, month: number) {
-  const startDate = dayjs(new Date(year, month - 1, 1))
-    .startOf("day")
-    .toDate();
-
-  const endDate = dayjs(startDate).endOf("month").startOf("day").toDate();
-
-  return { startDate, endDate };
 }
 
 /* Calcula saldo (income, expense, balance) de uma lista de transações */
