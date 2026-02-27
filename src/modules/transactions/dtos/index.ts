@@ -11,35 +11,13 @@ import {
   Matches,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { PaginationDto } from "src/common/query/pagination.query";
-import { PartialType } from "@nestjs/swagger";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
+import { PartialType, IntersectionType } from "@nestjs/swagger";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { PeriodFilterDto } from "src/common/dtos/period.dto";
 
-export class GetParamsTransactionDto extends PaginationDto {
-  @ApiPropertyOptional({
-    description: "Descrição da transação",
-    example: "Compra no supermercado",
-  })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiPropertyOptional({
-    description: "ID da categoria",
-    example: "507f1f77bcf86cd799439011",
-  })
-  @IsOptional()
-  @IsString()
-  categoryId?: string;
-
-  @ApiPropertyOptional({
-    description: "ID do usuário",
-    example: "507f1f77bcf86cd799439012",
-  })
-  @IsOptional()
-  @IsString()
-  userId?: string;
-
+// Classes base reutilizáveis
+export class TransactionTypeFilterDto {
   @ApiPropertyOptional({
     description: "Tipo da transação",
     enum: ["INCOME", "EXPENSE"],
@@ -48,7 +26,19 @@ export class GetParamsTransactionDto extends PaginationDto {
   @IsOptional()
   @IsEnum(["INCOME", "EXPENSE"])
   type?: "INCOME" | "EXPENSE";
+}
 
+export class CategoryFilterDto {
+  @ApiPropertyOptional({
+    description: "ID da categoria",
+    example: "507f1f77bcf86cd799439011",
+  })
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+}
+
+export class DateRangeFilterDto {
   @ApiPropertyOptional({
     description: "Data de início do filtro",
     example: "2024-01-01",
@@ -66,45 +56,39 @@ export class GetParamsTransactionDto extends PaginationDto {
   endDate?: string;
 }
 
-export class GetBalanceQueryDto {
+export class DescriptionFilterDto {
   @ApiPropertyOptional({
-    description: "Ano para filtrar as transações",
-    example: 2024,
+    description: "Descrição da transação",
+    example: "Compra no supermercado",
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  year?: number;
-
-  @ApiPropertyOptional({
-    description: "Mês para filtrar as transações (1-12)",
-    example: 2,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  month?: number;
+  @IsString()
+  description?: string;
 }
 
-export class GetTransactionByMonthDto {
+export class UserIdFilterDto {
   @ApiPropertyOptional({
-    description: "Ano para filtrar as transações",
-    example: 2024,
+    description: "ID do usuário",
+    example: "507f1f77bcf86cd799439012",
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  year?: number;
+  @IsString()
+  userId?: string;
+}
 
-  @ApiPropertyOptional({
-    description: "Mês para filtrar as transações (1-12)",
-    example: 2,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  month?: number;
+class GetParamsTransactionDtoBase extends PaginationDto {}
+export class GetParamsTransactionDto extends IntersectionType(
+  GetParamsTransactionDtoBase,
+  DescriptionFilterDto,
+  CategoryFilterDto,
+  UserIdFilterDto,
+  TransactionTypeFilterDto,
+  DateRangeFilterDto,
+) {}
 
+export class GetBalanceQueryDto extends PeriodFilterDto {}
+
+export class SearchFilterDto {
   @ApiPropertyOptional({
     description: "Campo de busca para descrição ou categoria da transação",
     example: "supermercado",
@@ -112,7 +96,9 @@ export class GetTransactionByMonthDto {
   @IsOptional()
   @IsString()
   search?: string;
+}
 
+export class CategoryIdsFilterDto {
   @ApiPropertyOptional({
     description: "ID's das categorias separados por vírgula",
     example: "507f1f77bcf86cd799439011,507f1f77bcf86cd799439012",
@@ -120,16 +106,14 @@ export class GetTransactionByMonthDto {
   @IsOptional()
   @IsString()
   categoryIds?: string;
-
-  @ApiPropertyOptional({
-    description: "Tipo da transação",
-    enum: ["INCOME", "EXPENSE"],
-    example: "EXPENSE",
-  })
-  @IsOptional()
-  @IsEnum(["INCOME", "EXPENSE"])
-  type?: "INCOME" | "EXPENSE";
 }
+
+export class GetTransactionByMonthDto extends IntersectionType(
+  PeriodFilterDto,
+  SearchFilterDto,
+  CategoryIdsFilterDto,
+  TransactionTypeFilterDto,
+) {}
 
 export class CreateTransactionDto {
   @ApiProperty({
