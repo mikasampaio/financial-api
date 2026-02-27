@@ -7,7 +7,7 @@ import {
   IsString,
   Matches,
 } from "class-validator";
-import { PaginationDto } from "src/common/query/pagination.query";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 import { PartialType } from "@nestjs/swagger";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
