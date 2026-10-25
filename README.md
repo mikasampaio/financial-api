@@ -1,3 +1,7 @@
+# Financial API
+
+API NestJS para controle financeiro pessoal, com Prisma e MongoDB.
+
 ## Regras de acesso da API
 
 - Todas as rotas de categorias exigem token Bearer. Categorias com `userId` pertencem ao usuário; categorias sem `userId` (ou com valor nulo) são padrão, disponíveis para consulta e uso, mas protegidas contra edição e exclusão pela API.
@@ -9,101 +13,94 @@
 
 Para verificar as correções: `npm test -- --runInBand` e `npm run build`. Os testes usam mocks de persistência e não exigem acesso ao banco.
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Recursos implementados
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Todos os endpoints abaixo exigem Bearer JWT, exceto recuperação e redefinição de senha. Swagger disponível em `/api`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+| Método | Endpoint | Finalidade |
+|---|---|---|
+| POST | `/auth/forgot-password` | Solicitar email de recuperação: `{ "email": "usuario@exemplo.com" }` |
+| POST | `/auth/reset-password` | Redefinir senha: `{ "token": "...", "password": "nova-senha" }` |
+| GET | `/dashboard?year=2026&month=1` | Saldo acumulado, resumo do mês, seis meses de evolução e cinco transações recentes |
+| GET | `/reports/spending-ranking?year=2026&month=1` | Ranking de despesas por categoria |
+| GET | `/reports/monthly-comparison?year=2026&month=1` | Comparação com dezembro/2025, incluindo valores e variações percentuais |
+| GET | `/reports/export?year=2026&month=1&format=pdf` | Relatório PDF; use `format=xlsx` para Excel |
+| GET | `/recurrences` | Consultar séries recorrentes próprias |
+| POST | `/recurrences` | Ativar série a partir de transação existente |
+| DELETE | `/recurrences/:id` | Cancelar próximos lançamentos, preservando transações existentes |
+| GET | `/users/me/preferences` | Consultar tema e preferências de notificações |
+| PATCH | `/users/me/preferences` | Alterar `theme`, `emailNotifications` e/ou `pushNotifications` |
+| POST | `/users/me/change-password` | Alterar senha com `{ "currentPassword": "...", "password": "..." }` |
+| POST | `/users/me/logout-all` | Revogar todas as sessões, inclusive a atual |
+| GET | `/users/me/export` | Download de backup JSON com perfil, categorias acessíveis, transações e séries |
 
-## Description
+### Instalação e execução
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. Execute `npm ci` e copie `.env.example` para `.env`, preenchendo as configurações do seu ambiente.
+2. Use MongoDB com replica set (como MongoDB Atlas). As operações de recorrência usam transações atômicas do Prisma 6.
+3. Execute `npx prisma db push` no banco destinado à aplicação para sincronizar o schema e criar os índices de recorrência. Não use Prisma Migrate para MongoDB. Nenhum comando de alteração do banco foi executado automaticamente nesta implementação.
+4. Execute `npm run build` e `npm run start:prod`, ou `npm run start:dev` no desenvolvimento. O build regenera os clientes Prisma e resolve aliases para o Node.js.
 
-## Project setup
+### Recuperação de senha e segurança
 
-```bash
-$ npm install
+Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `MAIL_FROM` e `PASSWORD_RESET_URL`; se o servidor exigir autenticação, preencha `SMTP_USER` e `SMTP_PASSWORD`. É possível testar localmente com um SMTP de captura, como Mailpit, sem enviar email real. `PASSWORD_RESET_URL` aponta para a tela do front-end que recebe o parâmetro `token` e envia a nova senha à API.
+
+Novas senhas exigem no mínimo 8 caracteres e no máximo 72 bytes (limite do bcrypt).
+
+O token tem 32 bytes aleatórios, somente o hash SHA-256 é armazenado, expira em 30 minutos e só pode ser consumido uma vez. Há um intervalo mínimo de um minuto entre solicitações para a mesma conta. A resposta não informa se o email está cadastrado e não retorna o token. Sem configuração de email, a solicitação retorna 503. Falhas de entrega são registradas sem expor token ou senha e mantêm a resposta genérica.
+
+Alteração ou redefinição de senha e logout global revogam JWTs anteriores por meio de uma versão aleatória da sessão. Usuários e tokens anteriores sem versão continuam compatíveis até a primeira revogação. A API consulta o usuário ao validar cada JWT, bloqueando também contas excluídas. O campo `password` deixou de ser aceito no `PUT /users/:id`; use a rota de troca de senha com a senha atual. Alterar email no `PUT` também exige `currentPassword`, revoga as sessões e invalida links de recuperação anteriores.
+
+### Recorrência
+
+Para criar uma série junto com o primeiro lançamento, envie para `POST /transactions`:
+
+```json
+{
+  "type": "EXPENSE",
+  "amount": "150.50",
+  "date": "2026-01-31",
+  "categoryId": "507f1f77bcf86cd799439011",
+  "description": "Assinatura",
+  "recurring": true,
+  "frequency": "MONTHLY",
+  "recurrenceEndsAt": "2026-12-31"
+}
 ```
 
-## Compile and run the project
+Frequências: `DAILY`, `WEEKLY`, `MONTHLY` (padrão) e `YEARLY`. A data final é opcional e inclusiva; uma data sem horário inclui o dia inteiro em UTC. Séries mensais/anual preservam o dia original, ajustando ao último dia de meses curtos. Assim, 31/jan gera 28 ou 29/fev e depois 31/mar; 29/fev volta ao dia 29 no próximo ano bissexto.
 
-```bash
-# development
-$ npm run start
+O primeiro lançamento e a série são gravados na mesma transação. A API processa vencimentos ao iniciar e a cada minuto, com até 100 séries por execução e uma ocorrência por série. Períodos atrasados são recuperados nas execuções seguintes. IDs determinísticos e atualização condicional da série dentro da transação protegem contra reprocessamento, concorrência entre instâncias e cancelamento simultâneo. Erros transitórios são tentados novamente; séries sem usuário ou categoria utilizável são desativadas. A API precisa estar em execução para gerar os lançamentos. `RECURRENCE_WORKER_ENABLED=false` desativa o processamento naquela instância.
 
-# watch mode
-$ npm run start:dev
+Transações antigas com `recurring=true` não são convertidas automaticamente, pois isso poderia gerar lançamentos históricos inesperados. Para ativar explicitamente uma série, use:
 
-# production mode
-$ npm run start:prod
+```json
+{
+  "transactionId": "507f1f77bcf86cd799439011",
+  "frequency": "MONTHLY",
+  "endsAt": "2026-12-31"
+}
 ```
 
-## Run tests
+Editar ou excluir uma ocorrência não altera os demais lançamentos nem a série. Para interromper lançamentos futuros, cancele a série por seu `recurrenceId`. Para mudar valor ou frequência da série, cancele-a e crie uma nova. O cancelamento não apaga lançamentos já registrados, e uma transação já vinculada não pode iniciar outra série.
 
-```bash
-# unit tests
-$ npm run test
+### Datas e relatórios
 
-# e2e tests
-$ npm run test:e2e
+Períodos financeiros usam UTC. `year` e `month` são opcionais; o padrão é o mês atual em UTC. O dashboard retorna os seis meses terminando no mês selecionado, em ordem cronológica, incluindo meses zerados. `totalBalance` e `accumulatedBalance` incluem os lançamentos anteriores até o último milissegundo do mês selecionado. Isso inclui transações futuras já cadastradas dentro desse período. O resumo mensal mostra somente o movimento daquele mês.
 
-# test coverage
-$ npm run test:cov
-```
+O comparativo usa o mês calendário anterior, inclusive ao atravessar o ano. Variações percentuais retornam `null` quando o valor anterior é zero. O ranking considera despesas agrupadas por categoria, em ordem decrescente de valor. PDF e Excel incluem resumo, comparativo, ranking e transações do período, em BRL. O Excel contém abas separadas e mantém textos do usuário como texto, sem avaliá-los como fórmulas.
 
-## Deployment
+### Preferências e backup
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Temas aceitos: `light`, `dark` e `system` (padrão). Notificações por email e push começam desativadas. As flags persistem preferências; não constituem um serviço de entrega de notificações ou registro de dispositivos push. Emails de recuperação são enviados independentemente dessas preferências.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+O backup JSON inclui apenas dados do usuário autenticado e categorias acessíveis, sem hashes de senha, tokens ou estado interno de sessão. É uma exportação para download; não há restauração/importação nem agendamento de backups.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Recibos, metas, orçamentos, biometria e interfaces do aplicativo permanecem fora desta implementação.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Verificação
 
-## Resources
+- `npm test -- --runInBand`: testes unitários e HTTP, com persistência e email simulados. Os testes HTTP usam porta temporária em `127.0.0.1`.
+- `npm run build`: geração dos clientes, compilação e resolução dos imports.
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Os testes não alteram bancos reais nem enviam emails. A configuração de SMTP e a execução contra MongoDB com replica set devem ser validadas no ambiente de implantação.
