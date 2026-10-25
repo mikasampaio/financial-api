@@ -51,6 +51,7 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 export const ModelName = {
   Category: 'Category',
   Transaction: 'Transaction',
+  Recurrence: 'Recurrence',
   User: 'User'
 } as const
 
@@ -78,6 +79,7 @@ export const TransactionScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
   date: 'date',
+  recurrenceId: 'recurrenceId',
   recurring: 'recurring',
   description: 'description',
   type: 'type',
@@ -88,8 +90,33 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const RecurrenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  categoryId: 'categoryId',
+  amount: 'amount',
+  description: 'description',
+  type: 'type',
+  frequency: 'frequency',
+  startsAt: 'startsAt',
+  nextDate: 'nextDate',
+  endsAt: 'endsAt',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type RecurrenceScalarFieldEnum = (typeof RecurrenceScalarFieldEnum)[keyof typeof RecurrenceScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
+  authVersion: 'authVersion',
+  resetTokenHash: 'resetTokenHash',
+  resetTokenExpiresAt: 'resetTokenExpiresAt',
+  resetRequestedAt: 'resetRequestedAt',
+  theme: 'theme',
+  emailNotifications: 'emailNotifications',
+  pushNotifications: 'pushNotifications',
   email: 'email',
   password: 'password',
   name: 'name'

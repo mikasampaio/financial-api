@@ -58,6 +58,11 @@ export type Category = Prisma.CategoryModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model Recurrence
+ * 
+ */
+export type Recurrence = Prisma.RecurrenceModel
+/**
  * Model User
  * 
  */

@@ -42,27 +42,66 @@ model Category {
   icon         String?
   status       Status?
   transactions Transaction[]
+
+  @@index([userId])
 }
 
 model Transaction {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  amount       Float
+  date         DateTime
+  recurrenceId String?         @db.ObjectId
+  recurring    Boolean         @default(false)
+  description  String?
+  type         TransactionType
+  categoryId   String?         @db.ObjectId
+  category     Category?       @relation(fields: [categoryId], references: [id])
+  status       Status?
+  userId       String          @db.ObjectId
+  user         User            @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model Recurrence {
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String              @db.ObjectId
+  categoryId  String              @db.ObjectId
   amount      Float
-  date        DateTime
-  recurring   Boolean         @default(false)
   description String?
   type        TransactionType
-  categoryId  String?         @db.ObjectId
-  category    Category?       @relation(fields: [categoryId], references: [id])
-  status      Status?
-  userId      String          @db.ObjectId
-  user        User            @relation(fields: [userId], references: [id])
+  frequency   RecurrenceFrequency @default(MONTHLY)
+  startsAt    DateTime
+  nextDate    DateTime
+  endsAt      DateTime?
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+
+  @@index([active, nextDate])
+  @@index([userId])
 }
 
 model User {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  email        String        @unique
-  password     String
-  name         String?
-  status       Status?
-  transactions Transaction[]
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  authVersion         String?
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+  resetRequestedAt    DateTime?
+  theme               String        @default("system")
+  emailNotifications  Boolean       @default(false)
+  pushNotifications   Boolean       @default(false)
+  email               String        @unique
+  password            String
+  name                String?
+  status              Status?
+  transactions        Transaction[]
+
+  @@index([resetTokenHash])
 }

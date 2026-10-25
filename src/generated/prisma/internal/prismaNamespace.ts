@@ -392,6 +392,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Category: 'Category',
   Transaction: 'Transaction',
+  Recurrence: 'Recurrence',
   User: 'User'
 } as const
 
@@ -408,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "category" | "transaction" | "user"
+    modelProps: "category" | "transaction" | "recurrence" | "user"
     txIsolationLevel: never
   }
   model: {
@@ -560,6 +561,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Recurrence: {
+      payload: Prisma.$RecurrencePayload<ExtArgs>
+      fields: Prisma.RecurrenceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RecurrenceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RecurrenceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        findFirst: {
+          args: Prisma.RecurrenceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RecurrenceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        findMany: {
+          args: Prisma.RecurrenceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>[]
+        }
+        create: {
+          args: Prisma.RecurrenceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        createMany: {
+          args: Prisma.RecurrenceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.RecurrenceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        update: {
+          args: Prisma.RecurrenceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        deleteMany: {
+          args: Prisma.RecurrenceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RecurrenceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.RecurrenceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurrencePayload>
+        }
+        aggregate: {
+          args: Prisma.RecurrenceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRecurrence>
+        }
+        groupBy: {
+          args: Prisma.RecurrenceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RecurrenceGroupByOutputType>[]
+        }
+        findRaw: {
+          args: Prisma.RecurrenceFindRawArgs<ExtArgs>
+          result: Prisma.JsonObject
+        }
+        aggregateRaw: {
+          args: Prisma.RecurrenceAggregateRawArgs<ExtArgs>
+          result: Prisma.JsonObject
+        }
+        count: {
+          args: Prisma.RecurrenceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RecurrenceCountAggregateOutputType> | number
+        }
+      }
+    }
     User: {
       payload: Prisma.$UserPayload<ExtArgs>
       fields: Prisma.UserFieldRefs
@@ -669,6 +744,7 @@ export const TransactionScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
   date: 'date',
+  recurrenceId: 'recurrenceId',
   recurring: 'recurring',
   description: 'description',
   type: 'type',
@@ -679,8 +755,33 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const RecurrenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  categoryId: 'categoryId',
+  amount: 'amount',
+  description: 'description',
+  type: 'type',
+  frequency: 'frequency',
+  startsAt: 'startsAt',
+  nextDate: 'nextDate',
+  endsAt: 'endsAt',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type RecurrenceScalarFieldEnum = (typeof RecurrenceScalarFieldEnum)[keyof typeof RecurrenceScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
+  authVersion: 'authVersion',
+  resetTokenHash: 'resetTokenHash',
+  resetTokenExpiresAt: 'resetTokenExpiresAt',
+  resetRequestedAt: 'resetRequestedAt',
+  theme: 'theme',
+  emailNotifications: 'emailNotifications',
+  pushNotifications: 'pushNotifications',
   email: 'email',
   password: 'password',
   name: 'name'
@@ -787,6 +888,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
+
+/**
+ * Reference to a field of type 'RecurrenceFrequency'
+ */
+export type EnumRecurrenceFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrenceFrequency'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurrenceFrequency[]'
+ */
+export type ListEnumRecurrenceFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrenceFrequency[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -875,6 +990,7 @@ export interface PrismaClientOptions {
 export type GlobalOmitConfig = {
   category?: Prisma.CategoryOmit
   transaction?: Prisma.TransactionOmit
+  recurrence?: Prisma.RecurrenceOmit
   user?: Prisma.UserOmit
 }
 
