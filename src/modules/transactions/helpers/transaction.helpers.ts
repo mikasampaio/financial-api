@@ -86,6 +86,7 @@ export function calculateBalance(transactions: Transaction[]) {
     income,
     expense,
     balance: income - expense,
+    savingsRate: income > 0 ? ((income - expense) / income) * 100 : 0,
   };
 }
 

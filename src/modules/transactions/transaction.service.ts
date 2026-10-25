@@ -70,14 +70,10 @@ export class TransactionService {
     categoryIds,
     type,
   }: GetTransactionByMonthDto & { userId: string }) {
-    // Aplicar valores padrão se não fornecidos
-    const yearFormat = year ?? dayjs().year();
-    const monthFormat = month ?? dayjs().month() + 1;
-
     const whereParams = buildTransactionWhereClause({
       userId,
-      year: yearFormat,
-      month: monthFormat,
+      year,
+      month,
       search,
       categoryIds,
       type,
@@ -112,50 +108,6 @@ export class TransactionService {
       transactions: data.transactions,
       total: data.total,
     }));
-  }
-
-  /* Obtém transações por período */
-  async getByPeriod({
-    year,
-    month,
-    userId,
-    search,
-    categoryIds,
-    type,
-  }: GetTransactionByMonthDto & { userId: string }) {
-    // Aplicar valores padrão se não fornecidos
-    const yearFormat = year ?? dayjs().year();
-    const monthFormat = month ?? dayjs().month() + 1;
-
-    const whereParams = buildTransactionWhereClause({
-      userId,
-      year: yearFormat,
-      month: monthFormat,
-      search,
-      categoryIds,
-      type,
-    });
-
-    const transactions = await this.prisma.transaction.findMany({
-      where: whereParams,
-      orderBy: {
-        date: "desc",
-      },
-      include: categoryInclude,
-    });
-
-    const balance = calculateBalance(transactions);
-
-    return {
-      transactions,
-      total: transactions.length,
-      month: monthFormat,
-      year: yearFormat,
-      balance: {
-        ...balance,
-        total: balance.balance,
-      },
-    };
   }
 
   /* Obtém o saldo de transações por período */

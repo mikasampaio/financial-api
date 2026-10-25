@@ -58,6 +58,7 @@ export class ReportService {
       const category = categories.find((cat) => cat.id === expense.categoryId);
       return {
         category: category ? category.name : "Sem categoria",
+        color: category ? category.color : "#000000",
         totalAmount: expense._sum.amount,
         transactionCount: expense._count.id,
         percent: expense._sum.amount
@@ -90,7 +91,7 @@ export class ReportService {
 
     return transactions.reduce(
       (acc, transaction) => {
-        const month = dayjs(transaction.date).format("MMMM");
+        const month = dayjs(transaction.date).format("MMM");
         const year = dayjs(transaction.date).year();
         const existingMonth = acc.find(
           (m) => m.month === month && m.year === year,

@@ -79,18 +79,6 @@ export class TransactionController {
     });
   }
 
-  @Get("period")
-  @ApiGetByPeriod()
-  getByPeriod(
-    @CurrentUserId() userId: string,
-    @Query() query: GetTransactionByMonthDto,
-  ) {
-    return this.transactionService.getByPeriod({
-      ...query,
-      userId,
-    });
-  }
-
   @Get("available-months")
   @ApiGetAvailableMonthsOptions()
   getAvailableMonthsOptions(@CurrentUserId() userId: string) {
