@@ -1,3 +1,5 @@
+import { RecurrenceModule } from "./modules/recurrences/recurrence.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { CategoryModule } from "./modules/categories/category.module";
@@ -18,6 +20,8 @@ import { ReportModule } from "./modules/reports/report.module";
     UserModule,
     AuthModule,
     ReportModule,
+    RecurrenceModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

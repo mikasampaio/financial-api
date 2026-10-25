@@ -113,9 +113,9 @@ describe("Correções prioritárias", () => {
 
   it("inclui todo o último dia de fevereiro bissexto", () => {
     const { startDate, endDate } = calculatePeriodDates(2024, 2);
-    expect(startDate.getDate()).toBe(1);
-    expect(endDate.getDate()).toBe(29);
-    expect(endDate.getHours()).toBe(23);
+    expect(startDate.getUTCDate()).toBe(1);
+    expect(endDate.getUTCDate()).toBe(29);
+    expect(endDate.getUTCHours()).toBe(23);
     expect(endDate.getMilliseconds()).toBe(999);
   });
 
@@ -157,7 +157,7 @@ describe("Correções prioritárias", () => {
       {
         name: "Teste",
         email: "test@example.com",
-        password: "secret",
+        password: "secret123",
         id: other,
       },
       { type: "body", metatype: CreateUserDTO },
@@ -174,7 +174,13 @@ describe("Correções prioritárias", () => {
       signAsync: jest.fn().mockResolvedValue("token"),
     } as any).register(input);
     expect(prisma.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({ omit: { password: true } }),
+      expect.objectContaining({
+        omit: expect.objectContaining({
+          password: true,
+          resetTokenHash: true,
+          authVersion: true,
+        }),
+      }),
     );
     expect(response).not.toHaveProperty("password");
     expect(response.access_token).toBe("token");
@@ -191,12 +197,22 @@ describe("Correções prioritárias", () => {
     const service = new UserService(prisma as any);
     await service.updateUser(owner, { name: "Novo nome" });
     expect(prisma.user.update).toHaveBeenCalledWith(
-      expect.objectContaining({ omit: { password: true } }),
+      expect.objectContaining({
+        omit: expect.objectContaining({
+          password: true,
+          resetTokenHash: true,
+          authVersion: true,
+        }),
+      }),
     );
     await service.getUsers(owner);
     expect(prisma.user.findMany).toHaveBeenCalledWith({
       where: { id: owner },
-      omit: { password: true },
+      omit: expect.objectContaining({
+        password: true,
+        resetTokenHash: true,
+        authVersion: true,
+      }),
     });
   });
 });

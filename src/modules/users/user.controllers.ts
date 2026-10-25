@@ -1,5 +1,8 @@
 import {
   Body,
+  Header,
+  Patch,
+  StreamableFile,
   Controller,
   Delete,
   Get,
@@ -16,7 +19,12 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { UserService } from "./user.services";
-import { CreateUserDTO, UpdateUserDTO } from "./dtos/user.dtos";
+import {
+  CreateUserDTO,
+  UpdateUserDTO,
+  UpdatePreferencesDto,
+  ChangePasswordDto,
+} from "./dtos/user.dtos";
 import {
   CurrentUserId,
   ParamsId,
@@ -29,6 +37,61 @@ import { UserOwnerGuard } from "src/common/guards/user-owner.guard";
 @Controller("users")
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get("me/preferences")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Consultar preferências do perfil" })
+  preferences(@CurrentUserId() userId: string) {
+    return this.userService.preferences(userId);
+  }
+
+  @Patch("me/preferences")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Atualizar tema e preferências de notificações" })
+  updatePreferences(
+    @CurrentUserId() userId: string,
+    @Body() data: UpdatePreferencesDto,
+  ) {
+    return this.userService.updatePreferences(userId, data);
+  }
+
+  @Post("me/change-password")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Trocar senha e invalidar sessões" })
+  changePassword(
+    @CurrentUserId() userId: string,
+    @Body() data: ChangePasswordDto,
+  ) {
+    return this.userService.changePassword(userId, data);
+  }
+
+  @Post("me/logout-all")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Encerrar todas as sessões" })
+  revokeSessions(@CurrentUserId() userId: string) {
+    return this.userService.revokeSessions(userId);
+  }
+
+  @Get("me/export")
+  @Header("Cache-Control", "no-store")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Exportar dados pessoais em JSON" })
+  async exportData(@CurrentUserId() userId: string) {
+    return new StreamableFile(
+      Buffer.from(
+        JSON.stringify(await this.userService.exportData(userId), null, 2),
+      ),
+      {
+        type: "application/json",
+        disposition: 'attachment; filename="financial-backup.json"',
+      },
+    );
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get()

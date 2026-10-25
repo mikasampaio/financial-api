@@ -1,3 +1,4 @@
+import { publicUser } from "../users/public-user";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
@@ -11,8 +12,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async generateToken(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  async generateToken(
+    userId: string,
+    email: string,
+    version: string | number = 0,
+  ) {
+    const payload = { sub: userId, email, version };
     return this.jwtService.signAsync(payload);
   }
 
@@ -25,11 +30,15 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const { password: _, ...userData } = user;
+    const userData = publicUser(user);
 
     return {
       ...userData,
-      access_token: await this.generateToken(user.id, user.email),
+      access_token: await this.generateToken(
+        user.id,
+        user.email,
+        user.authVersion ?? 0,
+      ),
     };
   }
 

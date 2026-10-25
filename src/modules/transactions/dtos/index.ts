@@ -1,5 +1,7 @@
 import {
   IsBoolean,
+  ValidateIf,
+  IsMongoId,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -12,7 +14,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
-import { PartialType, IntersectionType } from "@nestjs/swagger";
+import { PartialType, IntersectionType, OmitType } from "@nestjs/swagger";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PeriodFilterDto } from "src/common/dtos/period.dto";
 
@@ -130,6 +132,7 @@ export class CreateTransactionDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/)
   amount: string;
 
   @ApiProperty({
@@ -137,9 +140,7 @@ export class CreateTransactionDto {
     example: "2024-02-18",
   })
   @IsNotEmpty()
-  // @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-  //   message: "Date must be in the format YYYY-MM-DD",
-  // })
+  @IsDateString({ strict: true })
   date: string;
 
   @ApiPropertyOptional({
@@ -147,8 +148,24 @@ export class CreateTransactionDto {
     example: false,
   })
   @IsBoolean()
-  @IsOptional()
+  @ValidateIf((_object, value) => value !== undefined)
   recurring?: boolean;
+
+  @ApiPropertyOptional({
+    enum: ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+    default: "MONTHLY",
+  })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsEnum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"])
+  frequency?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+
+  @ApiPropertyOptional({
+    description:
+      "Última data permitida para os lançamentos da série (inclusiva)",
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  recurrenceEndsAt?: string;
 
   @ApiPropertyOptional({
     description: "Descrição da transação",
@@ -164,7 +181,15 @@ export class CreateTransactionDto {
   })
   @IsNotEmpty()
   @IsString()
+  @IsMongoId()
   categoryId: string;
 }
 
-export class UpdateTransactionDto extends PartialType(CreateTransactionDto) {}
+export class UpdateTransactionDto extends PartialType(
+  OmitType(CreateTransactionDto, [
+    "recurring",
+    "frequency",
+    "recurrenceEndsAt",
+  ] as const),
+  { skipNullProperties: false },
+) {}

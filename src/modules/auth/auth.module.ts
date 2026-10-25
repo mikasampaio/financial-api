@@ -1,3 +1,6 @@
+import { PrismaModule } from "../prisma/prisma.module";
+import { PasswordRecoveryService } from "./password-recovery.service";
+import { MailService } from "../mail/mail.service";
 import { Module } from "@nestjs/common";
 import { UserModule } from "../users/user.module";
 import { JwtModule } from "@nestjs/jwt";
@@ -9,10 +12,11 @@ import { AuthController } from "./auth.controller";
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PasswordRecoveryService, MailService],
   exports: [AuthService],
   imports: [
     ConfigModule,
+    PrismaModule,
     UserModule,
     PassportModule,
     JwtModule.registerAsync({

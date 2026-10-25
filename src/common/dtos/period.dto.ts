@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional } from "class-validator";
+import { IsInt, IsOptional, Min, Max } from "class-validator";
 
 export class PeriodFilterDto {
   @ApiPropertyOptional({
@@ -9,7 +9,9 @@ export class PeriodFilterDto {
   })
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
+  @IsInt()
+  @Min(1970)
+  @Max(9999)
   year?: number;
 
   @ApiPropertyOptional({
@@ -18,6 +20,8 @@ export class PeriodFilterDto {
   })
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
+  @IsInt()
+  @Min(1)
+  @Max(12)
   month?: number;
 }

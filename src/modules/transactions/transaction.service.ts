@@ -1,3 +1,5 @@
+import { BadRequestException } from "@nestjs/common";
+import { nextOccurrence } from "../recurrences/recurrence.helper";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import {
@@ -121,8 +123,8 @@ export class TransactionService {
     userId: string;
   }) {
     // Aplicar valores padrão se não fornecidos
-    const yearFormat = year ?? dayjs().year();
-    const monthFormat = month ?? dayjs().month() + 1;
+    const yearFormat = year ?? new Date().getUTCFullYear();
+    const monthFormat = month ?? new Date().getUTCMonth() + 1;
 
     const whereParams = buildTransactionWhereClause({
       userId,
@@ -149,9 +151,8 @@ export class TransactionService {
     const options = transactions.reduce<
       Array<{ months: { name: string; value: number }[]; year: number }>
     >((acc, transaction) => {
-      const date = dayjs(transaction.date);
-      const year = date.year();
-      const month = date.month() + 1;
+      const year = transaction.date.getUTCFullYear();
+      const month = transaction.date.getUTCMonth() + 1;
 
       const monthName = months.find((m) => m.value === month)?.label;
 
@@ -215,15 +216,57 @@ export class TransactionService {
       );
     }
 
-    return await this.prisma.transaction.create({
-      data: {
-        ...data,
-        amount: parseFloat(data.amount),
-        date: new Date(data.date),
-        status: {
-          createdAt: new Date(),
+    const {
+      frequency = "MONTHLY",
+      recurrenceEndsAt,
+      ...transactionData
+    } = data;
+    const amount = Number(data.amount);
+    if (!Number.isFinite(amount) || amount <= 0)
+      throw new BadRequestException("Valor deve ser positivo");
+    const date = new Date(data.date);
+    const endsAt = recurrenceEndsAt
+      ? new Date(
+          recurrenceEndsAt.length === 10
+            ? `${recurrenceEndsAt}T23:59:59.999Z`
+            : recurrenceEndsAt,
+        )
+      : null;
+    if (endsAt && endsAt < date)
+      throw new BadRequestException(
+        "Fim da recorrência deve ser igual ou posterior à data inicial",
+      );
+    if (!data.recurring && (data.frequency || recurrenceEndsAt))
+      throw new BadRequestException(
+        "Configuração de recorrência requer recurring=true",
+      );
+    const createData = {
+      ...transactionData,
+      amount,
+      date,
+      status: { createdAt: new Date() },
+    };
+    if (!data.recurring)
+      return this.prisma.transaction.create({ data: createData });
+    return this.prisma.$transaction(async (tx) => {
+      const nextDate = nextOccurrence(date, date, frequency);
+      const series = await tx.recurrence.create({
+        data: {
+          userId: data.userId,
+          categoryId: data.categoryId,
+          amount,
+          description: data.description,
+          type: data.type,
+          startsAt: date,
+          nextDate,
+          frequency,
+          endsAt,
+          active: !endsAt || nextDate <= endsAt,
         },
-      },
+      });
+      return tx.transaction.create({
+        data: { ...createData, recurrenceId: series.id },
+      });
     });
   }
 
@@ -257,6 +300,11 @@ export class TransactionService {
     }
 
     const { amount, date, userId, ...restData } = data;
+    if (
+      amount !== undefined &&
+      (!Number.isFinite(Number(amount)) || Number(amount) <= 0)
+    )
+      throw new BadRequestException("Valor deve ser positivo");
 
     return await this.prisma.transaction.update({
       where: { id, userId },
