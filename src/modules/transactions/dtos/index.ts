@@ -81,7 +81,6 @@ export class GetParamsTransactionDto extends IntersectionType(
   GetParamsTransactionDtoBase,
   DescriptionFilterDto,
   CategoryFilterDto,
-  UserIdFilterDto,
   TransactionTypeFilterDto,
   DateRangeFilterDto,
 ) {}

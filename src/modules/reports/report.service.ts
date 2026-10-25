@@ -99,8 +99,8 @@ export class ReportService {
 
         if (existingMonth) {
           if (transaction.type === TransactionType.INCOME)
-            existingMonth.income = transaction._sum.amount || 0;
-          else existingMonth.expense = transaction._sum.amount || 0;
+            existingMonth.income += transaction._sum.amount || 0;
+          else existingMonth.expense += transaction._sum.amount || 0;
         } else {
           acc.push({
             month,

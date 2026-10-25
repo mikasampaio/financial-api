@@ -32,6 +32,7 @@ enum TransactionType {
 }
 
 model Category {
+  userId       String?         @db.ObjectId
   id           String          @id @default(auto()) @map("_id") @db.ObjectId
   order        Int?
   name         String

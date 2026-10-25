@@ -35,6 +35,7 @@ export type CategorySumAggregateOutputType = {
 }
 
 export type CategoryMinAggregateOutputType = {
+  userId: string | null
   id: string | null
   order: number | null
   name: string | null
@@ -45,6 +46,7 @@ export type CategoryMinAggregateOutputType = {
 }
 
 export type CategoryMaxAggregateOutputType = {
+  userId: string | null
   id: string | null
   order: number | null
   name: string | null
@@ -55,6 +57,7 @@ export type CategoryMaxAggregateOutputType = {
 }
 
 export type CategoryCountAggregateOutputType = {
+  userId: number
   id: number
   order: number
   name: number
@@ -75,6 +78,7 @@ export type CategorySumAggregateInputType = {
 }
 
 export type CategoryMinAggregateInputType = {
+  userId?: true
   id?: true
   order?: true
   name?: true
@@ -85,6 +89,7 @@ export type CategoryMinAggregateInputType = {
 }
 
 export type CategoryMaxAggregateInputType = {
+  userId?: true
   id?: true
   order?: true
   name?: true
@@ -95,6 +100,7 @@ export type CategoryMaxAggregateInputType = {
 }
 
 export type CategoryCountAggregateInputType = {
+  userId?: true
   id?: true
   order?: true
   name?: true
@@ -192,6 +198,7 @@ export type CategoryGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 export type CategoryGroupByOutputType = {
+  userId: string | null
   id: string
   order: number | null
   name: string
@@ -225,6 +232,7 @@ export type CategoryWhereInput = {
   AND?: Prisma.CategoryWhereInput | Prisma.CategoryWhereInput[]
   OR?: Prisma.CategoryWhereInput[]
   NOT?: Prisma.CategoryWhereInput | Prisma.CategoryWhereInput[]
+  userId?: Prisma.StringNullableFilter<"Category"> | string | null
   id?: Prisma.StringFilter<"Category"> | string
   order?: Prisma.IntNullableFilter<"Category"> | number | null
   name?: Prisma.StringFilter<"Category"> | string
@@ -237,6 +245,7 @@ export type CategoryWhereInput = {
 }
 
 export type CategoryOrderByWithRelationInput = {
+  userId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   order?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -253,6 +262,7 @@ export type CategoryWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.CategoryWhereInput | Prisma.CategoryWhereInput[]
   OR?: Prisma.CategoryWhereInput[]
   NOT?: Prisma.CategoryWhereInput | Prisma.CategoryWhereInput[]
+  userId?: Prisma.StringNullableFilter<"Category"> | string | null
   order?: Prisma.IntNullableFilter<"Category"> | number | null
   name?: Prisma.StringFilter<"Category"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Category"> | $Enums.TransactionType
@@ -264,6 +274,7 @@ export type CategoryWhereUniqueInput = Prisma.AtLeast<{
 }, "id">
 
 export type CategoryOrderByWithAggregationInput = {
+  userId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   order?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -282,6 +293,7 @@ export type CategoryScalarWhereWithAggregatesInput = {
   AND?: Prisma.CategoryScalarWhereWithAggregatesInput | Prisma.CategoryScalarWhereWithAggregatesInput[]
   OR?: Prisma.CategoryScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CategoryScalarWhereWithAggregatesInput | Prisma.CategoryScalarWhereWithAggregatesInput[]
+  userId?: Prisma.StringNullableWithAggregatesFilter<"Category"> | string | null
   id?: Prisma.StringWithAggregatesFilter<"Category"> | string
   order?: Prisma.IntNullableWithAggregatesFilter<"Category"> | number | null
   name?: Prisma.StringWithAggregatesFilter<"Category"> | string
@@ -292,6 +304,7 @@ export type CategoryScalarWhereWithAggregatesInput = {
 }
 
 export type CategoryCreateInput = {
+  userId?: string | null
   id?: string
   order?: number | null
   name: string
@@ -304,6 +317,7 @@ export type CategoryCreateInput = {
 }
 
 export type CategoryUncheckedCreateInput = {
+  userId?: string | null
   id?: string
   order?: number | null
   name: string
@@ -316,6 +330,7 @@ export type CategoryUncheckedCreateInput = {
 }
 
 export type CategoryUpdateInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -327,6 +342,7 @@ export type CategoryUpdateInput = {
 }
 
 export type CategoryUncheckedUpdateInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -338,6 +354,7 @@ export type CategoryUncheckedUpdateInput = {
 }
 
 export type CategoryCreateManyInput = {
+  userId?: string | null
   id?: string
   order?: number | null
   name: string
@@ -349,6 +366,7 @@ export type CategoryCreateManyInput = {
 }
 
 export type CategoryUpdateManyMutationInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -359,6 +377,7 @@ export type CategoryUpdateManyMutationInput = {
 }
 
 export type CategoryUncheckedUpdateManyInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -376,6 +395,7 @@ export type StatusObjectEqualityInput = {
 }
 
 export type CategoryCountOrderByAggregateInput = {
+  userId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   order?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -390,6 +410,7 @@ export type CategoryAvgOrderByAggregateInput = {
 }
 
 export type CategoryMaxOrderByAggregateInput = {
+  userId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   order?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -400,6 +421,7 @@ export type CategoryMaxOrderByAggregateInput = {
 }
 
 export type CategoryMinOrderByAggregateInput = {
+  userId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   order?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -425,6 +447,11 @@ export type StatusCreateInput = {
   deactivatedAt?: Date | string | null
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+  unset?: boolean
+}
+
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -440,11 +467,6 @@ export type StringFieldUpdateOperationsInput = {
 
 export type EnumTransactionTypeFieldUpdateOperationsInput = {
   set?: $Enums.TransactionType
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-  unset?: boolean
 }
 
 export type CategoryCreateNestedOneWithoutTransactionsInput = {
@@ -464,6 +486,7 @@ export type CategoryUpdateOneWithoutTransactionsNestedInput = {
 }
 
 export type CategoryCreateWithoutTransactionsInput = {
+  userId?: string | null
   id?: string
   order?: number | null
   name: string
@@ -475,6 +498,7 @@ export type CategoryCreateWithoutTransactionsInput = {
 }
 
 export type CategoryUncheckedCreateWithoutTransactionsInput = {
+  userId?: string | null
   id?: string
   order?: number | null
   name: string
@@ -502,6 +526,7 @@ export type CategoryUpdateToOneWithWhereWithoutTransactionsInput = {
 }
 
 export type CategoryUpdateWithoutTransactionsInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -512,6 +537,7 @@ export type CategoryUpdateWithoutTransactionsInput = {
 }
 
 export type CategoryUncheckedUpdateWithoutTransactionsInput = {
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -553,6 +579,7 @@ export type CategoryCountOutputTypeCountTransactionsArgs<ExtArgs extends runtime
 
 
 export type CategorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  userId?: boolean
   id?: boolean
   order?: boolean
   name?: boolean
@@ -568,6 +595,7 @@ export type CategorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
 
 
 export type CategorySelectScalar = {
+  userId?: boolean
   id?: boolean
   order?: boolean
   name?: boolean
@@ -577,7 +605,7 @@ export type CategorySelectScalar = {
   icon?: boolean
 }
 
-export type CategoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "order" | "name" | "type" | "description" | "color" | "icon" | "status", ExtArgs["result"]["category"]>
+export type CategoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"userId" | "id" | "order" | "name" | "type" | "description" | "color" | "icon" | "status", ExtArgs["result"]["category"]>
 export type CategoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | Prisma.Category$transactionsArgs<ExtArgs>
   _count?: boolean | Prisma.CategoryCountOutputTypeDefaultArgs<ExtArgs>
@@ -589,6 +617,7 @@ export type $CategoryPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    userId: string | null
     id: string
     order: number | null
     name: string
@@ -681,8 +710,8 @@ export interface CategoryDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    * // Get first 10 Categories
    * const categories = await prisma.category.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const categoryWithIdOnly = await prisma.category.findMany({ select: { id: true } })
+   * // Only select the `userId`
+   * const categoryWithUserIdOnly = await prisma.category.findMany({ select: { userId: true } })
    * 
    */
   findMany<T extends CategoryFindManyArgs>(args?: Prisma.SelectSubset<T, CategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -991,6 +1020,7 @@ export interface Prisma__CategoryClient<T, Null = never, ExtArgs extends runtime
  * Fields of the Category model
  */
 export interface CategoryFieldRefs {
+  readonly userId: Prisma.FieldRef<"Category", 'String'>
   readonly id: Prisma.FieldRef<"Category", 'String'>
   readonly order: Prisma.FieldRef<"Category", 'Int'>
   readonly name: Prisma.FieldRef<"Category", 'String'>

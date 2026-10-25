@@ -11,15 +11,29 @@ import { Category } from "src/generated/prisma/client";
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get({
-    id,
-    name,
-    type,
-    page,
-    limit,
-  }: GetParamsCategoryDto): Promise<Category[]> {
+  private visibleTo(userId: string) {
+    return { OR: [{ userId }, { userId: null }, { userId: { isSet: false } }] };
+  }
+
+  async assertOwned(id: string, userId: string) {
+    const category = await this.prisma.category.findFirst({
+      where: { id, userId },
+    });
+    if (!category)
+      throw new HttpException(
+        "Categoria não encontrada ou não editável",
+        HttpStatus.NOT_FOUND,
+      );
+    return category;
+  }
+
+  async get(
+    { id, name, type, page, limit }: GetParamsCategoryDto,
+    userId: string,
+  ): Promise<Category[]> {
     return await this.prisma.category.findMany({
       where: {
+        ...this.visibleTo(userId),
         name: { contains: name },
         id,
         type,
@@ -32,21 +46,18 @@ export class CategoryService {
     });
   }
 
-  async getById(id: string): Promise<Category | null> {
-    return await this.prisma.category.findUnique({
-      where: { id },
+  async getById(id: string, userId: string): Promise<Category | null> {
+    return await this.prisma.category.findFirst({
+      where: { id, ...this.visibleTo(userId) },
     });
   }
 
-  async create({
-    name,
-    description,
-    type,
-    color,
-    icon,
-  }: CreateCategoryDto): Promise<Category> {
+  async create(
+    { name, description, type, color, icon }: CreateCategoryDto,
+    userId: string,
+  ): Promise<Category> {
     const hasCategory = await this.prisma.category.findFirst({
-      where: { name, type },
+      where: { name, type, ...this.visibleTo(userId) },
     });
 
     if (hasCategory) {
@@ -55,6 +66,7 @@ export class CategoryService {
 
     return await this.prisma.category.create({
       data: {
+        userId,
         name,
         description,
         type,
@@ -67,17 +79,15 @@ export class CategoryService {
     });
   }
 
-  async update(id: string, data: UpdateCategoryDto): Promise<Category> {
-    const category = await this.prisma.category.findUnique({
-      where: { id },
-    });
-
-    if (!category) {
-      throw new HttpException("Categoria não encontrada", HttpStatus.NOT_FOUND);
-    }
+  async update(
+    id: string,
+    data: UpdateCategoryDto,
+    userId: string,
+  ): Promise<Category> {
+    await this.assertOwned(id, userId);
 
     return await this.prisma.category.update({
-      where: { id },
+      where: { id, userId },
       data: {
         ...data,
         status: {
@@ -87,9 +97,10 @@ export class CategoryService {
     });
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId: string): Promise<void> {
+    await this.assertOwned(id, userId);
     await this.prisma.category.delete({
-      where: { id },
+      where: { id, userId },
     });
   }
 }

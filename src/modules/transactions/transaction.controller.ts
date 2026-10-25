@@ -51,8 +51,8 @@ export class TransactionController {
     return this.transactionService.get({
       page: Number(page),
       limit: Number(limit),
-      userId,
       ...filters,
+      userId,
     });
   }
 

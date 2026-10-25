@@ -14,8 +14,9 @@ import { User } from "src/generated/prisma/client";
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUsers(): Promise<Omit<User, "password">[]> {
+  async getUsers(userId: string): Promise<Omit<User, "password">[]> {
     return await this.prisma.user.findMany({
+      where: { id: userId },
       omit: { password: true },
     });
   }
@@ -27,7 +28,7 @@ export class UserService {
     });
   }
 
-  async createUser(data: CreateUserDTO): Promise<User> {
+  async createUser(data: CreateUserDTO): Promise<Omit<User, "password">> {
     const user = await this.prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -40,6 +41,7 @@ export class UserService {
     data.password = hashedPassword;
 
     return this.prisma.user.create({
+      omit: { password: true },
       data: {
         ...data,
         status: {
@@ -49,8 +51,12 @@ export class UserService {
     });
   }
 
-  async updateUser(id: string, data: UpdateUserDTO): Promise<User> {
-    await this.getById(id);
+  async updateUser(
+    id: string,
+    data: UpdateUserDTO,
+  ): Promise<Omit<User, "password">> {
+    if (!(await this.getById(id)))
+      throw new NotFoundException("Usuário não encontrado");
 
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -58,6 +64,7 @@ export class UserService {
     }
 
     return await this.prisma.user.update({
+      omit: { password: true },
       where: { id },
       data: {
         ...data,

@@ -6,7 +6,7 @@ export function calculatePeriodDates(year: number, month: number) {
     .startOf("day")
     .toDate();
 
-  const endDate = dayjs(startDate).endOf("month").startOf("day").toDate();
+  const endDate = dayjs(startDate).endOf("month").toDate();
 
   return { startDate, endDate };
 }

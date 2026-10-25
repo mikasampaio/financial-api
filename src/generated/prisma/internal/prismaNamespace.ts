@@ -652,6 +652,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
  */
 
 export const CategoryScalarFieldEnum = {
+  userId: 'userId',
   id: 'id',
   order: 'order',
   name: 'name',

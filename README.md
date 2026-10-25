@@ -1,3 +1,14 @@
+## Regras de acesso da API
+
+- Todas as rotas de categorias exigem token Bearer. Categorias com `userId` pertencem ao usuário; categorias sem `userId` (ou com valor nulo) são padrão, disponíveis para consulta e uso, mas protegidas contra edição e exclusão pela API.
+- Categorias antigas sem proprietário continuam sendo tratadas como padrão. Caso existam categorias pessoais antigas, é necessário identificar seus proprietários antes de atribuir `userId`; a API não infere essa associação.
+- `GET /users` retorna somente o usuário autenticado, mantendo o formato de lista. Consultar, atualizar ou excluir `/users/:id` exige que o ID seja o do token; outros IDs retornam 403.
+- Transações são consultadas e modificadas no escopo do usuário autenticado. O parâmetro `userId` enviado pelo cliente não substitui o ID do token.
+- Campos fora dos DTOs são removidos pela validação global. Senhas e hashes não são retornados pelos endpoints de cadastro, criação e atualização de usuários.
+- Após atualizar o schema, execute `npx prisma generate` para regenerar os dois clientes Prisma. O campo opcional de proprietário das categorias é compatível com documentos MongoDB existentes; estas correções não executam atualização de dados.
+
+Para verificar as correções: `npm test -- --runInBand` e `npm run build`. Os testes usam mocks de persistência e não exigem acesso ao banco.
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

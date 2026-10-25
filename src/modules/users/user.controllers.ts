@@ -17,8 +17,13 @@ import {
 } from "@nestjs/swagger";
 import { UserService } from "./user.services";
 import { CreateUserDTO, UpdateUserDTO } from "./dtos/user.dtos";
-import { ParamsId } from "src/common/decorators/params.decorator";
+import {
+  CurrentUserId,
+  ParamsId,
+} from "src/common/decorators/params.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt.guard";
+
+import { UserOwnerGuard } from "src/common/guards/user-owner.guard";
 
 @ApiTags("users")
 @Controller("users")
@@ -28,7 +33,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Listar todos os usuários" })
+  @ApiOperation({ summary: "Consultar usuário autenticado" })
   @ApiResponse({
     status: HttpStatus.OK,
     description: "Lista de usuários retornada com sucesso",
@@ -37,12 +42,16 @@ export class UserController {
     status: HttpStatus.UNAUTHORIZED,
     description: "Não autorizado",
   })
-  getUsers() {
-    return this.userService.getUsers();
+  getUsers(@CurrentUserId() userId: string) {
+    return this.userService.getUsers(userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserOwnerGuard)
   @Get(":id")
+  @ApiResponse({
+    status: 403,
+    description: "Acesso permitido apenas ao próprio perfil",
+  })
   @ApiBearerAuth()
   @ApiOperation({ summary: "Buscar usuário por ID" })
   @ApiResponse({ status: HttpStatus.OK, description: "Usuário encontrado" })
@@ -72,8 +81,12 @@ export class UserController {
     return await this.userService.createUser(body);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserOwnerGuard)
   @Put(":id")
+  @ApiResponse({
+    status: 403,
+    description: "Acesso permitido apenas ao próprio perfil",
+  })
   @ApiBearerAuth()
   @ApiOperation({ summary: "Atualizar usuário" })
   @ApiResponse({
@@ -92,8 +105,12 @@ export class UserController {
     return this.userService.updateUser(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserOwnerGuard)
   @Delete(":id")
+  @ApiResponse({
+    status: 403,
+    description: "Acesso permitido apenas ao próprio perfil",
+  })
   @ApiBearerAuth()
   @ApiOperation({ summary: "Deletar usuário" })
   @ApiResponse({

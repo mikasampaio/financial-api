@@ -32,7 +32,7 @@ export class TransactionService {
     startDate,
     endDate,
     userId,
-  }: GetParamsTransactionDto) {
+  }: GetParamsTransactionDto & { userId: string }) {
     const whereParams = buildTransactionWhereClause({
       userId,
       description,
@@ -193,8 +193,15 @@ export class TransactionService {
       throw new HttpException("Usuário não encontrado", HttpStatus.NOT_FOUND);
     }
 
-    const category = await this.prisma.category.findUnique({
-      where: { id: data.categoryId },
+    const category = await this.prisma.category.findFirst({
+      where: {
+        id: data.categoryId,
+        OR: [
+          { userId: data.userId },
+          { userId: null },
+          { userId: { isSet: false } },
+        ],
+      },
     });
 
     if (data.categoryId && !category) {
@@ -221,18 +228,27 @@ export class TransactionService {
   }
 
   async update(id: string, data: UpdateTransactionDto & { userId: string }) {
-    if (data.categoryId) {
-      const category = await this.prisma.category.findUnique({
-        where: { id: data.categoryId },
+    const transaction = await this.getById({ id, userId: data.userId });
+    if (!transaction)
+      throw new HttpException("Transação não encontrada", HttpStatus.NOT_FOUND);
+    const categoryId = data.categoryId ?? transaction.categoryId;
+    if (categoryId) {
+      const category = await this.prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: data.userId },
+            { userId: null },
+            { userId: { isSet: false } },
+          ],
+        },
       });
-
       if (!category)
         throw new HttpException(
           "Categoria não encontrada",
           HttpStatus.NOT_FOUND,
         );
-
-      if (category?.type && data.type && category.type !== data.type) {
+      if (category.type !== (data.type ?? transaction.type)) {
         throw new HttpException(
           "Tipo da transação deve ser igual ao tipo da categoria",
           HttpStatus.BAD_REQUEST,
@@ -240,10 +256,10 @@ export class TransactionService {
       }
     }
 
-    const { amount, date, ...restData } = data;
+    const { amount, date, userId, ...restData } = data;
 
     return await this.prisma.transaction.update({
-      where: { id },
+      where: { id, userId },
       data: {
         ...restData,
         ...(date && { date: new Date(date) }),
@@ -256,8 +272,10 @@ export class TransactionService {
   }
 
   async delete(id: string, userId: string) {
+    if (!(await this.getById({ id, userId })))
+      throw new HttpException("Transação não encontrada", HttpStatus.NOT_FOUND);
     await this.prisma.transaction.delete({
-      where: { id },
+      where: { id, userId },
     });
   }
 }

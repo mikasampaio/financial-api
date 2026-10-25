@@ -61,6 +61,7 @@ export type ModelName = (typeof ModelName)[keyof typeof ModelName]
  */
 
 export const CategoryScalarFieldEnum = {
+  userId: 'userId',
   id: 'id',
   order: 'order',
   name: 'name',
